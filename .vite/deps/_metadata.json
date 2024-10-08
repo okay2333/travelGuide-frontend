@@ -1,0 +1,13 @@
+{
+  "hash": "436defde",
+  "browserHash": "3c9151d2",
+  "optimized": {
+    "uni-app-fetch": {
+      "src": "../../node_modules/uni-app-fetch/dist/index.js",
+      "file": "uni-app-fetch.js",
+      "fileHash": "5fa39d44",
+      "needsInterop": true
+    }
+  },
+  "chunks": {}
+}

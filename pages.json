@@ -1,0 +1,78 @@
+{
+  "pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "uni-app"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "uni-app"
+      }
+    },
+    {
+      "path": "pages/post/index",
+      "style": {
+        "navigationBarTitleText": "uni-app"
+      }
+    },
+    {
+      "path": "pages/virtual/index",
+      "style": {
+        "navigationBarTitleText": "uni-app"
+      }
+    },
+    {
+      "path": "pages/my/index",
+      "style": {
+        "navigationBarTitleText": "uni-app"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "uni-app",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#000000",
+    "selectedColor": "#00aaff",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [{
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      }, {
+        "pagePath": "pages/post/index",
+        "text": "社区"
+      }, {
+        "pagePath": "pages/virtual/index",
+        "text": "虚拟"
+      },
+      {
+        "pagePath": "pages/my/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "subPackages": [{
+    "root": "subpkg_post",
+    "pages": [{
+        "path": "postDetail/index",
+        "style": {
+          "navigationBarTitleText": "帖子详情"
+        }
+      },
+      {
+        "path": "addPost/index",
+        "style": {
+          "navigationBarTitleText": "发布帖子"
+        }
+      }
+    ]
+  }],
+  "uniIdRouter": {}
+}
