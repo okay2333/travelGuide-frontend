@@ -1,7 +1,11 @@
 <template>
   <view class="detail_container">
     <view class="detail">
-      <img class="cover" src="file:///G:/FrontEnd/HBuilderProjects/travelGuide-frontend/static/duolamei.jpg" alt="" />
+      <!-- <img class="cover" :src="postDetail.coverList" /> -->
+      <template v-for="item in postDetail.coverList">
+        <img class="cover" :src="item" />
+      </template>
+
       <h3>{{ postDetail.title }}</h3>
       <h5>{{ postDetail.content }}</h5>
     </view>
