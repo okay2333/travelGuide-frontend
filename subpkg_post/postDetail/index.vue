@@ -5,7 +5,6 @@
       <template v-for="item in postDetail.coverList">
         <img class="cover" :src="item" />
       </template>
-
       <h3>{{ postDetail.title }}</h3>
       <h5>{{ postDetail.content }}</h5>
     </view>
@@ -22,6 +21,7 @@ const init = async (id) => {
   const { code, data } = await postApi.detail(id);
   postDetail.value = data;
 };
+
 onLoad((option) => {
   init(option.id);
 });

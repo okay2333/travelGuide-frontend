@@ -155,15 +155,9 @@ onMounted(async () => {
           span {
             margin-left: 8rpx;
             font-size: 20rpx;
-            // line-height: 10rpx;
           }
         }
       }
-    }
-    .cover {
-      width: 100%;
-      border-radius: 8rpx;
-      // margin: 8rpx 8rpx 0 8rpx;
     }
   }
 }
