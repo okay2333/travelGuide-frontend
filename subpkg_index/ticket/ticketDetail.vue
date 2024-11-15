@@ -16,7 +16,9 @@
       <view class="price">标准票￥{{ ticket.price }}</view>
       <view class="buy">
         <!-- <u-button type="primary" shape="circle" @click="goOrders(ticket.id)">立即购买</u-button> -->
-        <u-button type="primary" shape="circle" @click="orderPopupshow = true">立即购买</u-button>
+        <u-button type="primary" shape="circle" @click="orderPopupshow = true"
+          >立即购买</u-button
+        >
       </view>
     </view>
     <!-- 确认订单弹窗 -->
@@ -24,15 +26,19 @@
       <view class="popup-container">
         <view class="item">
           <view class="item-cover">
-            <img src="file:///G:/FrontEnd/HBuilderProjects/travelGuide-frontend/static/duolamei.jpg" width="70" alt="" />
+            <img
+              src="file:///G:/FrontEnd/HBuilderProjects/travelGuide-frontend/static/duolamei.jpg"
+              width="70"
+              alt=""
+            />
           </view>
           <view class="item-price">
-            <view class="price">单价：￥15</view>
-            <u-number-box v-model="Numvalue" size="32"></u-number-box>
+            <view class="price">单价：￥{{ ticket.price }}</view>
+            <u-number-box v-model="Numvalue" :min="1" size="32"></u-number-box>
           </view>
         </view>
         <view class="price">
-          <button>立即支付￥150</button>
+          <button @click="onPay">立即支付￥{{ computeTotal }}</button>
         </view>
       </view>
     </u-popup>
@@ -40,35 +46,57 @@
 </template>
 
 <script setup>
-const Numvalue = ref(1);
-
-import confirmOrder from '@/subpkg_index/ticket/component/confirmOrder.vue';
-import { ref } from 'vue';
-import { onLoad } from '@dcloudio/uni-app';
-import ticketScenicApi from '@/apis/ticket-scenic.js';
-
+import confirmOrder from "@/subpkg_index/ticket/component/confirmOrder.vue";
+import { ref, computed } from "vue";
+import { onLoad } from "@dcloudio/uni-app";
+import ticketScenicApi from "@/apis/ticket-scenic.js";
+import orderApi from "@/apis/order.js";
 const orderPopupshow = ref(false);
 const show = ref(false);
 const list = ref([
   {
-    image: 'https://cdn.uviewui.com/uview/swiper/1.jpg',
-    title: '昨夜星辰昨夜风，画楼西畔桂堂东'
+    image: "https://cdn.uviewui.com/uview/swiper/1.jpg",
+    title: "昨夜星辰昨夜风，画楼西畔桂堂东",
   },
   {
-    image: 'https://cdn.uviewui.com/uview/swiper/2.jpg',
-    title: '身无彩凤双飞翼，心有灵犀一点通'
+    image: "https://cdn.uviewui.com/uview/swiper/2.jpg",
+    title: "身无彩凤双飞翼，心有灵犀一点通",
   },
   {
-    image: 'https://cdn.uviewui.com/uview/swiper/3.jpg',
-    title: '谁念西风独自凉，萧萧黄叶闭疏窗，沉思往事立残阳'
-  }
+    image: "https://cdn.uviewui.com/uview/swiper/3.jpg",
+    title: "谁念西风独自凉，萧萧黄叶闭疏窗，沉思往事立残阳",
+  },
 ]);
 
 const ticket = ref({
-  address: '',
-  price: ''
+  address: "",
+  price: "",
 });
 
+const Numvalue = ref(1);
+const computeTotal = computed(() => {
+  return Numvalue.value * ticket.value.price;
+});
+
+const preOrder = ref({
+  quantity: 1,
+  ticketScenicId: "",
+  totalPrice: "",
+});
+
+// 支付
+const onPay = async () => {
+  preOrder.value.quantity = Numvalue.value;
+  preOrder.value.ticketScenicId = ticket.value.id;
+  preOrder.value.totalPrice = computeTotal.value;
+  console.log(preOrder.value);
+  const res = await orderApi.add(preOrder.value);
+  console.log("订单", res);
+
+  uni.navigateTo({
+    url: `/subpkg_index/ticket/payment?id=${res.data.id}&orderId=${res.data.orderId}`,
+  });
+};
 const init = async (id) => {
   console.log(id);
   const { code, data } = await ticketScenicApi.getTicketScenicVOByIdApi(id);
@@ -79,7 +107,7 @@ const init = async (id) => {
 
 const goOrders = (id) => {
   uni.navigateTo({
-    url: `/subpkg_index/ticket/orders?id=${id}`
+    url: `/subpkg_index/ticket/orders?id=${id}`,
   });
 };
 

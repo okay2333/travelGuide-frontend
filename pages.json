@@ -110,6 +110,16 @@
         "style": {
           "navigationBarTitleText": "确认订单"
         }
+      }, {
+        "path": "ticket/orderDetails",
+        "style": {
+          "navigationBarTitleText": "订单详情页面"
+        }
+      }, {
+        "path": "ticket/payment",
+        "style": {
+          "navigationBarTitleText": "支付页面"
+        }
       }]
     },
     {
