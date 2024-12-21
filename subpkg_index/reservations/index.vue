@@ -1,149 +1,353 @@
 <template>
   <view class="container">
-    <view>
-      <h1 class="title">错峰出行，安全你我</h1>
-      <view class="record" @click="goRecord"><p class="record_text">预约记录</p></view>
+    <view class="header">
+      <text class="title">错峰出行，安全你我</text>
+      <view class="record-btn" @click="goRecord">
+        <u-icon name="calendar" size="28" color="#fff"></u-icon>
+        <text>预约记录</text>
+      </view>
     </view>
 
-    <view class="card">
-      <!-- 1.选择景区 -->
-      <view class="selectScenic" @click="openPopupScenic = true">
-        <template v-if="Object.keys(selectedScenic).length === 0">
-          <span>请选择景区</span>
-          <u-icon name="arrow-right"></u-icon>
-        </template>
-        <template v-else>
-          {{ selectedScenic.scenicName }}
-        </template>
-      </view>
-      <hr />
-      <!-- 2.预约日期 -->
-      <view class="selectDate" @click="openPopupDate = true">
-        <span style="padding-top: 20rpx">预约日期</span>
-        <view class="select">
-          <span class="select_text" v-if="!selectedOpenDate">请选择</span>
-          <span class="select_text" v-else>{{ selectedOpenDate }}</span>
-          <u-icon name="arrow-right" class="select_icon"></u-icon>
+    <view class="booking-card">
+      <!-- 1. 选择景区 -->
+      <view class="section scenic-section" @click="openPopupScenic = true">
+        <view class="section-title">
+          <u-icon name="map" size="40" color="#2979ff"></u-icon>
+          <text>选择景区</text>
         </view>
-      </view>
-      <!-- 3.步进器 -->
-      <view class="visitors">
-        <span style="padding-top: 20rpx">游客信息</span>
-        <view>
-          <span style="padding-right: 15rpx">预约人数</span>
-          <u-number-box :input-width="100" :input-height="60" :min="1" v-model="visitorNum"></u-number-box>
+        <view class="section-content">
+          <text
+            :class="{ placeholder: Object.keys(selectedScenic).length === 0 }"
+          >
+            {{
+              Object.keys(selectedScenic).length === 0
+                ? "请选择景区"
+                : selectedScenic.scenicName
+            }}
+          </text>
+          <u-icon name="arrow-right" color="#999"></u-icon>
         </view>
-      </view>
-      <!-- 4.游客信息 -->
-      <view class="userInfo" v-for="item in visitorNum">
-        <view class="userInfo_header">
-          <span>出游人信息（联系人）{{ item }}</span>
-        </view>
-        <u-form :model="form[item - 1]" ref="form1">
-          <u-form-item label="姓名" prop="fullName"><u-input v-model="form[item - 1].fullName" /></u-form-item>
-          <u-form-item label="手机" prop="phoneNumber"><u-input v-model="form[item - 1].phoneNumber" /></u-form-item>
-          <u-form-item label="号码" prop="idNumber"><u-input v-model="form[item - 1].idNumber" /></u-form-item>
-        </u-form>
       </view>
 
-      <button @click="onSubmit">提交</button>
+      <!-- 2. 预约日期 -->
+      <view class="section date-section" @click="openPopupDate = true">
+        <view class="section-title">
+          <u-icon name="calendar-fill" size="40" color="#2979ff"></u-icon>
+          <text>预约日期</text>
+        </view>
+        <view class="section-content">
+          <text :class="{ placeholder: !selectedOpenDate }">
+            {{ selectedOpenDate || "请选择日期" }}
+          </text>
+          <u-icon name="arrow-right" color="#999"></u-icon>
+        </view>
+      </view>
+
+      <!-- 3. 游客人数 -->
+      <view class="section visitor-section">
+        <view class="section-title">
+          <u-icon name="account" size="40" color="#2979ff"></u-icon>
+          <text>预约人数</text>
+        </view>
+        <view class="section-content">
+          <u-number-box
+            v-model="visitorNum"
+            :min="1"
+            :max="10"
+            :step="1"
+            :input-width="120"
+            :input-height="60"
+            color="#2979ff"
+          ></u-number-box>
+        </view>
+      </view>
+
+      <!-- 4. 游客信息表单 -->
+      <view class="visitors-form">
+        <view
+          class="visitor-card"
+          v-for="(item, index) in visitorNum"
+          :key="index"
+        >
+          <view class="visitor-header">
+            <u-icon name="user" size="32" color="#2979ff"></u-icon>
+            <text>游客 {{ index + 1 }}</text>
+          </view>
+
+          <u-form
+            :model="form[index]"
+            :ref="'form' + index"
+            :rules="rules"
+            label-position="left"
+          >
+            <u-form-item label="姓名" prop="fullName" required>
+              <u-input
+                v-model="form[index].fullName"
+                placeholder="请输入姓名"
+              />
+            </u-form-item>
+
+            <u-form-item label="手机号码" prop="phoneNumber" required>
+              <u-input
+                v-model="form[index].phoneNumber"
+                placeholder="请输入手机号"
+                type="number"
+              />
+            </u-form-item>
+
+            <u-form-item label="身份证号" prop="idNumber" required>
+              <u-input
+                v-model="form[index].idNumber"
+                placeholder="请输入身份证号"
+              />
+            </u-form-item>
+          </u-form>
+        </view>
+      </view>
+
+      <!-- 提交按钮 -->
+      <view class="submit-section">
+        <button class="submit-btn" @click="onSubmit">确认预约</button>
+      </view>
     </view>
+
+    <!-- 选择器弹窗 -->
+    <u-select
+      v-model="openPopupScenic"
+      mode="single-column"
+      :list="scenicList"
+      @confirm="confirmScenic"
+    ></u-select>
+
+    <u-popup v-model="openPopupDate" mode="bottom">
+      <uni-calendar
+        @change="changeDate"
+        :selected="selectedTime"
+        :start-date="startDate"
+        :end-date="endDate"
+      />
+    </u-popup>
   </view>
-  <!-- 卡片 -->
-
-  <u-select v-model="openPopupScenic" mode="single-column" :list="scenicList" @confirm="confirmScenic"></u-select>
-  <u-popup v-model="openPopupDate" mode="bottom">
-    <uni-calendar @change="changeDate" :selected="selectedTime" />
-  </u-popup>
 </template>
 
 <script setup>
-const goRecord = () => {
-  uni.navigateTo({
-    url: '/subpkg_index/reservations/record'
-  });
-};
-import { ref, onMounted, watch, nextTick } from 'vue';
-import reservationsApi from '@/apis/reservations';
-import reservationsTimeApi from '@/apis/reservationsTime.js';
-import reservationsTimeTravelersApi from '@/apis/reservationsTimeTravelers';
+import { ref, onMounted, watch } from "vue";
+import scenicApi from "@/apis/scenic";
+import reservationsApi from "@/apis/reservations";
+// import reservationsTimeApi from "@/apis/reservationsTime.js";
+import reservationsTravelersApi from "@/apis/reservationsTravelers";
 
-// 1. 选择景区
-const scenicList = ref([]); // 景区列表
-const openPopupScenic = ref(false); //选择景区弹窗
-const selectedScenic = ref({}); // 被选择的景区
-// 2. 预约时间
-const openPopupDate = ref(false); // 预约日期弹窗
-const selectedOpenDate = ref(); // 别选择的预约时间
-const selectedTime = ref(); // 选择预约时间
-// 3. 步进器
-const visitorNum = ref(1); //出游人人数
-// 4. 游客信息
-const form = ref([{ fullName: '', phoneNumber: '', idNumber: '' }]); // 出游人表单
-// 5. 提交表单
+// 表单验证规则
+const rules = {
+  fullName: [
+    {
+      required: true,
+      message: "请输入姓名",
+      trigger: ["blur", "change"],
+    },
+  ],
+  phoneNumber: [
+    {
+      required: true,
+      message: "请输入手机号",
+      trigger: ["blur", "change"],
+    },
+    {
+      pattern: /^1[3456789]\d{9}$/,
+      message: "请输入正确的手机号",
+      trigger: ["blur", "change"],
+    },
+  ],
+  idNumber: [
+    {
+      required: true,
+      message: "请输入身份证号",
+      trigger: ["blur", "change"],
+    },
+    {
+      pattern: /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/,
+      message: "请输入正确的身份证号",
+      trigger: ["blur", "change"],
+    },
+  ],
+};
+
+// 状态定义
+const scenicList = ref([]);
+const openPopupScenic = ref(false);
+const selectedScenic = ref({});
+const openPopupDate = ref(false);
+const selectedOpenDate = ref("");
+const selectedTime = ref([]);
+const visitorNum = ref(1);
+const form = ref([{ fullName: "", phoneNumber: "", idNumber: "" }]);
 const onSubmitForm = ref({
-  travelerList: [{}]
+  travelerList: [{}],
+  reservationsId: "",
 });
-// 初始化函数
+
+// 日期范围限制
+const startDate = ref(new Date().toISOString().split("T")[0]);
+const endDate = ref(
+  new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+);
+
+// 初始化
 const init = async () => {
-  const { code, data } = await reservationsApi.listApi();
-  // map返回结果需要是对象，第二种方法是简写
-  scenicList.value = data.records.map((result) => {
-    return {
-      label: result.scenicName,
-      value: result.id
-    };
-  });
+  try {
+    uni.showLoading({ title: "加载中" });
+    const { data } = await scenicApi.listScenicVOByPage({
+      current: 1,
+      pageSize: 100,
+      type: 1,
+    });
+    scenicList.value = data.records.map((item) => ({
+      label: item.scenicName,
+      value: item.id,
+    }));
+  } catch (error) {
+    uni.showToast({
+      title: "加载失败",
+      icon: "none",
+    });
+  } finally {
+    uni.hideLoading();
+  }
 };
 
 // 选择景区
 const confirmScenic = async (val) => {
-  selectedScenic.value = {
-    id: val[0].value,
-    scenicName: val[0].label
-  };
-  onSubmitForm.value.reservationsId = selectedScenic.value.id;
-  // 查询预约时间
-  const { data } = await reservationsTimeApi.list(onSubmitForm.value.reservationsId);
-  selectedTime.value = data.records.map((item) => {
-    const data = item.openDateTime.split('T')[0];
-    return {
-      date: data,
-      info: item.stock
+  try {
+    selectedScenic.value = {
+      id: val[0].value,
+      scenicName: val[0].label,
     };
-  });
+    // onSubmitForm.value.reservationsId = selectedScenic.value.id;
+    console.log("这是景区", onSubmitForm.value.reservationsId);
+
+    const { data } = await reservationsApi.listApi({
+      current: 1,
+      pageSize: 100,
+      scenicId: selectedScenic.value.id,
+    });
+    console.log("根据景区ID查询的Data", data);
+
+    selectedTime.value = data.records.map((item) => ({
+      date: item.openDateTime.split("T")[0],
+      info: item.stock,
+      id: item.id,
+    }));
+  } catch (error) {
+    uni.showToast({
+      title: "获取预约时间失败",
+      icon: "none",
+    });
+  }
 };
 
-// 选择预约时间
+// 选择日期
 const changeDate = async (e) => {
-  selectedOpenDate.value = e.fulldate;
-  const { data } = await reservationsTimeApi.list(onSubmitForm.value.reservationsId);
-  const result = data.records.find((item) => item.openDateTime.split('T')[0] === e.fulldate);
-  onSubmitForm.value.reservationsTimeId = result ? result.id : null;
+  console.log("这是多少", e);
+  console.log("selectedTime", selectedTime.value);
+  const test = selectedTime.value.some((item) => item.date === e.fulldate);
+  console.log("@@@s", test);
+  if (selectedTime.value.some((item) => item.date === e.fulldate)) {
+    console.log("选择日期", e);
+
+    selectedOpenDate.value = e.fulldate;
+    onSubmitForm.value.reservationsId = e.extraInfo.id;
+  } else {
+    uni.showToast({
+      title: "选择日期失败",
+      icon: "none",
+    });
+  }
+  // try {
+  // const { data } = await reservationsTimeApi.list(
+  //   onSubmitForm.value.reservationsId
+  // );
+  // console.log("选择日期的data", data);
+  // const result = data.records.find(
+  //   (item) => item.openDateTime.split("T")[0] === e.fulldate
+  // );
+  // onSubmitForm.value.reservationsTimeId = result?.id;
+  // } catch (error) {}
 };
 
 // 表单提交
 const onSubmit = async () => {
-  onSubmitForm.value.travelerList = form.value;
-  const res = await reservationsTimeTravelersApi.addApi(onSubmitForm.value);
+  try {
+    // 表单验证
+    if (!selectedScenic.value.id) {
+      return uni.showToast({
+        title: "请选择景区",
+        icon: "none",
+      });
+    }
+    if (!selectedOpenDate.value) {
+      return uni.showToast({
+        title: "请选择预约日期",
+        icon: "none",
+      });
+    }
+
+    uni.showLoading({ title: "提交中" });
+    onSubmitForm.value.travelerList = form.value;
+    console.log("提交之前表结构", onSubmitForm.value);
+
+    const { code, message } = await reservationsTravelersApi.addApi(
+      onSubmitForm.value
+    );
+
+    if (code === 0) {
+      uni.showToast({
+        title: "预约成功",
+        icon: "success",
+      });
+
+      // 预约成功后跳转到记录页
+      setTimeout(() => {
+        uni.redirectTo({
+          url: "/subpkg_index/reservations/record",
+        });
+      }, 1500);
+    } else if (code === 40000) {
+      uni.showToast({
+        title: "该景区已预约",
+        icon: "none",
+      });
+    } else {
+      uni.showToast({
+        title: message || "预约失败",
+        icon: "none",
+      });
+    }
+  } catch (error) {
+    uni.showToast({
+      title: "预约失败",
+      icon: "none",
+    });
+  } finally {
+    uni.hideLoading();
+  }
 };
 
-// 监听步进器变化填充表单数据
+// 监听人数变化
 watch(visitorNum, (newVal) => {
-  // 初始化时填充表单数据
-  initForm(visitorNum.value);
+  const newForm = [];
+  for (let i = 0; i < newVal; i++) {
+    newForm.push(
+      form.value[i] || { fullName: "", phoneNumber: "", idNumber: "" }
+    );
+  }
+  form.value = newForm;
 });
 
-// 初始化 form 数组
-const initForm = (num) => {
-  form.value = [];
-  for (let i = 0; i < num; i++) {
-    form.value.push({
-      fullName: '',
-      phoneNumber: '',
-      idNumber: ''
-    });
-  }
+// 页面跳转
+const goRecord = () => {
+  uni.navigateTo({
+    url: "/subpkg_index/reservations/record",
+  });
 };
 
 onMounted(() => {
@@ -151,80 +355,126 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .container {
-  // background-color: aqua;
-  background-image: linear-gradient(to right top, white, #065799);
-  height: 100vh;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1976d2, #64b5f6);
+  padding: 30rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 0;
+
   .title {
-    padding: 30rpx 0 0 30rpx;
+    color: #ffffff;
+    font-size: 36rpx;
+    font-weight: bold;
   }
-  .record {
-    width: 160rpx;
-    height: 60rpx;
-    border: 1px solid black;
-    border-radius: 15px;
-    margin: 10px;
-    float: right;
-    .record_text {
-      display: flex;
-      height: 100%;
-      width: 100%; /* 确保占满整个记录区域 */
-      justify-content: center;
-      align-items: center;
+
+  .record-btn {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 15rpx 30rpx;
+    border-radius: 30rpx;
+
+    text {
+      color: #ffffff;
+      margin-left: 10rpx;
+      font-size: 28rpx;
     }
   }
 }
-.card {
-  overflow: hidden;
-  background-color: #ffffff;
-  margin: 0 auto;
-  padding: 20rpx;
-  width: 95%;
-  border-radius: 5px;
-  .selectScenic {
+
+.booking-card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-top: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.section {
+  margin-bottom: 40rpx;
+
+  .section-title {
     display: flex;
-    justify-content: space-between;
-    margin: 30rpx 0;
-    span {
-      font-size: 36rpx;
-      font-weight: 600;
+    align-items: center;
+    margin-bottom: 20rpx;
+
+    text {
+      margin-left: 20rpx;
+      font-size: 32rpx;
+      font-weight: 500;
+      color: #333;
     }
   }
-  .selectDate {
+
+  .section-content {
     display: flex;
     justify-content: space-between;
-    margin: 30rpx 0;
-    .select {
-      width: 500rpx;
-      height: 80rpx;
-      border: 1px solid #ccc;
-      border: 1px solid #ffffff;
+    align-items: center;
+    padding: 20rpx;
+    background: #f8f9fa;
+    border-radius: 12rpx;
+
+    .placeholder {
+      color: #999;
+    }
+  }
+}
+
+.visitors-form {
+  .visitor-card {
+    background: #f8f9fa;
+    border-radius: 12rpx;
+    padding: 30rpx;
+    margin-bottom: 30rpx;
+
+    .visitor-header {
       display: flex;
       align-items: center;
-      border-radius: 5px;
-      .select_text {
-        padding-left: 20rpx;
-        width: 80%;
-      }
-      .select_icon {
-        padding: 10rpx;
+      margin-bottom: 30rpx;
+
+      text {
+        margin-left: 20rpx;
+        font-size: 30rpx;
+        font-weight: 500;
+        color: #333;
       }
     }
   }
-  .visitors {
-    display: flex;
-    justify-content: space-between;
-    margin: 30rpx 0;
-  }
-  .userInfo {
-    margin-top: 20rpx;
-    .userInfo_header {
-      span {
-        font-weight: 600;
-        color: #08a7f9;
-      }
+}
+
+.submit-section {
+  margin-top: 60rpx;
+
+  .submit-btn {
+    width: 100%;
+    height: 90rpx;
+    line-height: 90rpx;
+    background: #2979ff;
+    color: #ffffff;
+    font-size: 32rpx;
+    border-radius: 45rpx;
+    border: none;
+
+    &:active {
+      background: darken(#2979ff, 10%);
     }
+  }
+}
+
+::v-deep .u-form-item {
+  .u-form-item__body {
+    padding: 20rpx 0;
+  }
+
+  .u-form-item__body__left__content {
+    padding-right: 30rpx;
   }
 }
 </style>

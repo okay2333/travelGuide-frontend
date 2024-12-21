@@ -1,13 +1,13 @@
 import { uniFetch } from './uni-fetch';
 export default {
   listTicketScenicByPage() {
-    return uniFetch.post('/ticketScenic/list/page', {
+    return uniFetch.post('/ticket/list/page/vo', {
       current: 1,
       pageSize: 10
     });
   },
   getTicketScenicVOByIdApi(id) {
-    return uniFetch.get('/ticketScenic/get/vo', {
+    return uniFetch.get('/ticket/get/vo', {
       id
     });
   },

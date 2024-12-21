@@ -1,44 +1,107 @@
 <template>
   <view class="container">
-    <view class="wrap">
-      <u-swiper :list="list" height="500"></u-swiper>
+    <view class="swiper-container">
+      <u-swiper :list="carouselList" height="400"></u-swiper>
     </view>
-    <view class="info">
-      <view class="title">{{ ticket.scenicName }}</view>
-      <view class="tag" v-for="tag in ticket.tagList">
-        <u-tag :text="tag" mode="light" type="warning" />
+
+    <view class="content">
+      <view class="info-card">
+        <view class="header">
+          <text class="title">{{ ticketData.scenicVO.scenicName }}</text>
+          <view class="tags">
+            <u-tag
+              v-for="tag in ticketData.scenicVO.tagList"
+              :key="tag"
+              :text="tag"
+              mode="light"
+              type="warning"
+              size="mini"
+              class="tag-item"
+            />
+          </view>
+        </view>
+
+        <view class="details">
+          <view class="detail-item">
+            <u-icon name="clock" size="28"></u-icon>
+            <text>开放时间：{{ ticketData.scenicVO.openingHours }}</text>
+          </view>
+          <view class="detail-item">
+            <u-icon name="phone" size="28"></u-icon>
+            <text>联系电话：{{ ticketData.scenicVO.contactNumber }}</text>
+          </view>
+          <view class="detail-item">
+            <u-icon name="map" size="28"></u-icon>
+            <text>{{ ticketData.scenicVO.address }}</text>
+          </view>
+          <view class="detail-item description">
+            <text>{{ ticketData.scenicVO.details }}</text>
+          </view>
+        </view>
       </view>
-      <view class="openTime">开放时间 {{ ticket.openingHours }}</view>
-      <view class="phone">联系电话：{{ ticket.contactNumber }}</view>
-      <view class="address">{{ ticket.address }}</view>
     </view>
-    <view class="bottom">
-      <view class="price">标准票￥{{ ticket.price }}</view>
-      <view class="buy">
-        <!-- <u-button type="primary" shape="circle" @click="goOrders(ticket.id)">立即购买</u-button> -->
-        <u-button type="primary" shape="circle" @click="orderPopupshow = true"
+
+    <view class="bottom-bar">
+      <view class="price-container">
+        <text class="currency">￥</text>
+        <text class="price">{{ ticketData.price }}</text>
+        <text class="stock">库存: {{ ticketData.stock }}张</text>
+      </view>
+      <view class="button-container">
+        <u-button
+          type="primary"
+          shape="circle"
+          @click="orderPopupshow = true"
+          class="buy-button"
           >立即购买</u-button
         >
       </view>
     </view>
-    <!-- 确认订单弹窗 -->
-    <u-popup v-model="orderPopupshow" mode="bottom">
-      <view class="popup-container">
-        <view class="item">
-          <view class="item-cover">
-            <img
-              src="file:///G:/FrontEnd/HBuilderProjects/travelGuide-frontend/static/duolamei.jpg"
-              width="70"
-              alt=""
-            />
-          </view>
-          <view class="item-price">
-            <view class="price">单价：￥{{ ticket.price }}</view>
-            <u-number-box v-model="Numvalue" :min="1" size="32"></u-number-box>
+
+    <!-- 购买弹窗 -->
+    <u-popup v-model="orderPopupshow" mode="bottom" border-radius="16">
+      <view class="order-popup">
+        <view class="popup-header">
+          <text class="popup-title">确认订单</text>
+          <u-icon name="close" @click="orderPopupshow = false"></u-icon>
+        </view>
+
+        <view class="ticket-item">
+          <image
+            class="ticket-image"
+            :src="carouselList[0]?.image"
+            mode="aspectFill"
+          />
+          <view class="ticket-info">
+            <text class="ticket-name">{{
+              ticketData.scenicVO.scenicName
+            }}</text>
+            <view class="price-selector">
+              <text class="unit-price">￥{{ ticketData.price }}/张</text>
+              <u-number-box
+                v-model="Numvalue"
+                :min="1"
+                :max="ticketData.stock"
+                size="32"
+                class="quantity-selector"
+              ></u-number-box>
+            </view>
           </view>
         </view>
-        <view class="price">
-          <button @click="onPay">立即支付￥{{ computeTotal }}</button>
+
+        <view class="total-section">
+          <text class="total-label">总计</text>
+          <text class="total-price">￥{{ computeTotal }}</text>
+        </view>
+
+        <view class="submit-section">
+          <u-button
+            type="primary"
+            shape="circle"
+            @click="onPay"
+            class="submit-button"
+            >确认支付</u-button
+          >
         </view>
       </view>
     </u-popup>
@@ -46,36 +109,41 @@
 </template>
 
 <script setup>
-import confirmOrder from "@/subpkg_index/ticket/component/confirmOrder.vue";
 import { ref, computed } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import ticketScenicApi from "@/apis/ticket-scenic.js";
 import orderApi from "@/apis/order.js";
-const orderPopupshow = ref(false);
-const show = ref(false);
-const list = ref([
-  {
-    image: "https://cdn.uviewui.com/uview/swiper/1.jpg",
-    title: "昨夜星辰昨夜风，画楼西畔桂堂东",
-  },
-  {
-    image: "https://cdn.uviewui.com/uview/swiper/2.jpg",
-    title: "身无彩凤双飞翼，心有灵犀一点通",
-  },
-  {
-    image: "https://cdn.uviewui.com/uview/swiper/3.jpg",
-    title: "谁念西风独自凉，萧萧黄叶闭疏窗，沉思往事立残阳",
-  },
-]);
 
-const ticket = ref({
-  address: "",
-  price: "",
+const orderPopupshow = ref(false);
+const Numvalue = ref(1);
+const ticketData = ref({
+  id: "",
+  scenicId: "",
+  price: 0,
+  stock: 0,
+  openDateTime: "",
+  scenicVO: {
+    id: "",
+    scenicName: "",
+    openingHours: "",
+    contactNumber: "",
+    address: "",
+    details: "",
+    type: 0,
+    carouselImagesList: [],
+    tagList: [],
+  },
 });
 
-const Numvalue = ref(1);
+const carouselList = computed(() => {
+  return ticketData.value.scenicVO.carouselImagesList.map((img) => ({
+    image: img,
+    title: ticketData.value.scenicVO.scenicName,
+  }));
+});
+
 const computeTotal = computed(() => {
-  return Numvalue.value * ticket.value.price;
+  return Numvalue.value * ticketData.value.price;
 });
 
 const preOrder = ref({
@@ -84,31 +152,34 @@ const preOrder = ref({
   totalPrice: "",
 });
 
-// 支付
 const onPay = async () => {
   preOrder.value.quantity = Numvalue.value;
-  preOrder.value.ticketScenicId = ticket.value.id;
+  preOrder.value.ticketId = ticketData.value.id;
   preOrder.value.totalPrice = computeTotal.value;
-  console.log(preOrder.value);
-  const res = await orderApi.add(preOrder.value);
-  console.log("订单", res);
 
-  uni.navigateTo({
-    url: `/subpkg_index/ticket/payment?id=${res.data.id}&orderId=${res.data.orderId}`,
-  });
+  try {
+    const res = await orderApi.add(preOrder.value);
+    uni.navigateTo({
+      url: `/subpkg_index/ticket/payment?orderId=${res.data.id}&totalPrice=${res.data.totalPrice}`,
+    });
+  } catch (error) {
+    uni.showToast({
+      title: "创建订单失败",
+      icon: "none",
+    });
+  }
 };
+
 const init = async (id) => {
-  console.log(id);
-  const { code, data } = await ticketScenicApi.getTicketScenicVOByIdApi(id);
-  console.log(data);
-  ticket.value = data;
-  list.value = ticket.value.coverList;
-};
-
-const goOrders = (id) => {
-  uni.navigateTo({
-    url: `/subpkg_index/ticket/orders?id=${id}`,
-  });
+  try {
+    const { data } = await ticketScenicApi.getTicketScenicVOByIdApi(id);
+    ticketData.value = data;
+  } catch (error) {
+    uni.showToast({
+      title: "获取数据失败",
+      icon: "none",
+    });
+  }
 };
 
 onLoad((option) => {
@@ -118,57 +189,178 @@ onLoad((option) => {
 
 <style lang="scss">
 .container {
-  position: relative;
-  height: 95vh;
-  .info {
-    margin: 30rpx;
-    .title {
-      font-weight: 600;
-      font-size: 36rpx;
-      margin: 20rpx 0;
-    }
-    .openTime {
-      margin: 20rpx 0;
-      font-size: 32rpx;
-    }
-    .phone {
-      margin: 20rpx 0;
-      font-size: 32rpx;
-    }
-  }
-  .bottom {
-    position: absolute;
-    left: 0; /* 确保从左侧开始 */
-    right: 0; /* 确保到达右侧 */
-    padding: 0 30rpx; /* 添加一些内边距 */
-    bottom: 30rpx;
-    display: flex;
-    justify-content: space-between;
-    line-height: 80rpx;
-    .price {
-      font-weight: 600;
-      color: royalblue;
-      font-size: 36rpx;
-    }
-    .buy {
-    }
-  }
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120rpx;
 }
-.popup-container {
-  .item {
-    margin: 30rpx;
-    display: flex;
-    .item-cover {
-      margin-right: 30rpx;
+
+.swiper-container {
+  width: 100%;
+  background-color: #fff;
+}
+
+.content {
+  padding: 20rpx;
+}
+
+.info-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+
+  .header {
+    margin-bottom: 30rpx;
+
+    .title {
+      font-size: 40rpx;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20rpx;
     }
-    .item-price {
-      .price {
-        color: orangered;
-        margin: 20rpx 0;
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12rpx;
+
+      .tag-item {
+        margin-right: 12rpx;
       }
     }
   }
-  .price {
+
+  .details {
+    .detail-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20rpx;
+      color: #666;
+      font-size: 28rpx;
+
+      .u-icon {
+        margin-right: 16rpx;
+      }
+
+      &.description {
+        line-height: 1.6;
+        color: #999;
+      }
+    }
+  }
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  padding: 20rpx 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+
+  .price-container {
+    display: flex;
+    align-items: baseline;
+
+    .currency {
+      font-size: 28rpx;
+      color: #ff6b6b;
+    }
+    .price {
+      font-size: 48rpx;
+      font-weight: 600;
+      color: #ff6b6b;
+      margin-right: 16rpx;
+    }
+    .stock {
+      font-size: 24rpx;
+      color: #999;
+    }
+  }
+
+  .buy-button {
+    min-width: 240rpx;
+  }
+}
+
+.order-popup {
+  background-color: #fff;
+  padding: 30rpx;
+
+  .popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30rpx;
+
+    .popup-title {
+      font-size: 32rpx;
+      font-weight: 600;
+    }
+  }
+
+  .ticket-item {
+    display: flex;
+    padding: 20rpx 0;
+    border-bottom: 2rpx solid #f5f5f5;
+
+    .ticket-image {
+      width: 160rpx;
+      height: 160rpx;
+      border-radius: 8rpx;
+      margin-right: 20rpx;
+    }
+
+    .ticket-info {
+      flex: 1;
+
+      .ticket-name {
+        font-size: 28rpx;
+        color: #333;
+        margin-bottom: 20rpx;
+      }
+
+      .price-selector {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .unit-price {
+          color: #ff6b6b;
+          font-size: 32rpx;
+        }
+      }
+    }
+  }
+
+  .total-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30rpx 0;
+
+    .total-label {
+      font-size: 28rpx;
+      color: #666;
+    }
+
+    .total-price {
+      font-size: 36rpx;
+      font-weight: 600;
+      color: #ff6b6b;
+    }
+  }
+
+  .submit-section {
+    margin-top: 30rpx;
+
+    .submit-button {
+      width: 100%;
+    }
   }
 }
 </style>

@@ -1,116 +1,284 @@
 <template>
   <view class="container">
-    <view class="header">
-      <image class="avatar" :src="userInfo.avatarUrl" />
-      <text class="username">{{ userInfo.username }}</text>
+    <!-- 顶部用户信息区域 -->
+    <view class="user-info">
+      <view class="avatar-box">
+        <image class="avatar" :src="userInfo.avatarUrl" mode="aspectFill" />
+      </view>
+      <view class="info-content">
+        <text class="username">{{ userInfo.username }}</text>
+        <text class="user-desc">{{ userInfo.desc }}</text>
+      </view>
     </view>
-    <view class="details">
-      <view class="item" @click="goToSettings">
-        <text class="item-label">设置</text>
-        <image class="icon" src="/static/icons/arrow-right.png" />
+
+    <!-- 数据统计区域 -->
+    <view class="stats-box">
+      <view class="stat-item">
+        <text class="num">{{ stats.trips }}</text>
+        <text class="label">行程预约</text>
       </view>
-      <view class="item" @click="goToOrders">
-        <text class="item-label">我的订单</text>
-        <image class="icon" src="/static/icons/arrow-right.png" />
+      <view class="stat-item">
+        <text class="num">{{ stats.tickets }}</text>
+        <text class="label">购票记录</text>
       </view>
-      <view class="item" @click="logout">
-        <text class="item-label">退出登录</text>
-        <image class="icon" src="/static/icons/arrow-right.png" />
+      <view class="stat-item">
+        <text class="num">{{ stats.favorites }}</text>
+        <text class="label">收藏攻略</text>
+      </view>
+    </view>
+
+    <!-- 功能列表 -->
+    <view class="menu-list">
+      <view class="menu-group">
+        <view
+          class="menu-item"
+          @tap="navigateTo('/subpkg_index/reservations/record')"
+        >
+          <view class="item-left">
+            <text class="iconfont icon-calendar"></text>
+            <text class="title">我的预约</text>
+          </view>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+        <view
+          class="menu-item"
+          @tap="navigateTo('/subpkg_index/ticket/orderList')"
+        >
+          <view class="item-left">
+            <text class="iconfont icon-ticket"></text>
+            <text class="title">购票记录</text>
+          </view>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+      </view>
+
+      <view class="menu-group">
+        <view class="menu-item" @tap="navigateTo('/subpkg_my/favorites/index')">
+          <view class="item-left">
+            <text class="iconfont icon-star"></text>
+            <text class="title">我的收藏</text>
+          </view>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+        <view class="menu-item" @tap="navigateTo('/subpkg_my/profile/edit')">
+          <view class="item-left">
+            <text class="iconfont icon-edit"></text>
+            <text class="title">修改个人信息</text>
+          </view>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
+        <view class="menu-item" @tap="navigateTo('/subpkg_my/feedback/list')">
+          <view class="item-left">
+            <text class="iconfont icon-feedback"></text>
+            <text class="title">我的反馈</text>
+          </view>
+          <text class="iconfont icon-arrow-right"></text>
+        </view>
       </view>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import userApi from "@/apis/user";
+import orderApi from "@/apis/order";
+import reservationsTravelersApi from "@/apis/reservationsTravelers";
+import postFavourApi from "@/apis/post-favour";
 
-// 用户信息，模拟从后台获取
+// 用户信息
 const userInfo = ref({
-  username: "张三",
-  avatarUrl: "https://example.com/avatar.jpg", // 默认头像
+  username: "",
+  avatarUrl: "",
+  desc: "",
 });
 
-// 更换头像函数（模拟）
-const changeAvatar = () => {
-  // 在这里可以添加逻辑来调用文件上传功能
-  console.log("更换头像");
-  userInfo.value.avatarUrl = "https://example.com/new-avatar.jpg"; // 更换为新头像
+// 统计数据
+const stats = ref({
+  trips: 0, // 预约数量
+  tickets: 0, // 订单数量
+  favorites: 0, // 收藏数量（暂时保持0）
+});
+
+// 获取统计数据
+const getStats = async () => {
+  try {
+    // 获取预约数量
+    const { data: tripsCount } =
+      await reservationsTravelersApi.getUserReservationsCount();
+    // 获取订单数量
+    const { data: ticketsCount } = await orderApi.getUserOrdersCount();
+    // 获取收藏数量
+    const { data: favourCount } = await postFavourApi.count();
+
+    stats.value = {
+      trips: tripsCount || 0,
+      tickets: ticketsCount || 0,
+      favorites: favourCount || 0,
+    };
+  } catch (error) {
+    console.error("获取统计数据失败:", error);
+    uni.showToast({
+      title: "获取统计数据失败",
+      icon: "none",
+    });
+  }
 };
 
-// 跳转到设置页面
-const goToSettings = () => {
-  uni.navigateTo({
-    url: "/pages/settings/settings",
-  });
+// 获取登录用户信��
+const getLoginUser = async () => {
+  try {
+    const { data } = await userApi.getLoginUser();
+    userInfo.value = {
+      username: data.userName || "未登录",
+      avatarUrl: data.userAvatar || "/static/images/default-avatar.png",
+      desc: data.userProfile || "开启您的旅行之旅",
+    };
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+    uni.showToast({
+      title: "获取用户信息失败",
+      icon: "none",
+    });
+  }
 };
 
-// 跳转到订单页面
-const goToOrders = () => {
-  uni.navigateTo({
-    url: "/pages/orders/orders",
-  });
+// 页面跳转
+const navigateTo = (url) => {
+  uni.navigateTo({ url });
 };
 
-// 退出登录
-const logout = () => {
-  // 清除用户信息、token等，模拟退出
-  console.log("退出登录");
-  uni.clearStorageSync();
-  uni.reLaunch({
-    url: "/pages/login/login",
-  });
-};
+onMounted(async () => {
+  await getLoginUser();
+  await getStats();
+});
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .container {
-  padding: 20rpx;
+  min-height: 100vh;
+  background-color: #f8f9fb;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-.header {
+.user-info {
+  position: relative;
+  padding: 40rpx 30rpx 100rpx;
+  background: linear-gradient(135deg, #0066ff 0%, #2b85ff 100%);
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 30rpx;
+
+  .avatar-box {
+    width: 120rpx;
+    height: 120rpx;
+    border-radius: 60rpx;
+    border: 4rpx solid rgba(255, 255, 255, 0.3);
+    overflow: hidden;
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+  }
+
+  .info-content {
+    margin-left: 24rpx;
+    color: #fff;
+
+    .username {
+      font-size: 36rpx;
+      font-weight: 600;
+      margin-bottom: 16rpx;
+      display: block;
+    }
+
+    .user-desc {
+      font-size: 24rpx;
+      opacity: 0.8;
+      display: block;
+      line-height: 1.4;
+      max-width: 400rpx;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }
 
-.avatar {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  margin-right: 20rpx;
-}
-
-.username {
-  font-size: 28rpx;
-  font-weight: bold;
-}
-
-.details {
+.stats-box {
+  position: relative;
+  margin: -70rpx 20rpx 0;
+  padding: 30rpx 0;
   background-color: #fff;
-  border-radius: 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.1);
-}
-
-.item {
-  padding: 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+  border-radius: 16rpx;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.05);
+  z-index: 1;
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10rpx 0;
+
+    .num {
+      font-size: 36rpx;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8rpx;
+    }
+
+    .label {
+      font-size: 24rpx;
+      color: #666;
+    }
+  }
 }
 
-.item:last-child {
-  border-bottom: none;
-}
+.menu-list {
+  margin: 30rpx 20rpx;
 
-.item-label {
-  font-size: 24rpx;
-}
+  .menu-group {
+    background-color: #fff;
+    border-radius: 16rpx;
+    margin-bottom: 20rpx;
+    overflow: hidden;
+  }
 
-.icon {
-  width: 30rpx;
-  height: 30rpx;
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 30rpx 24rpx;
+    border-bottom: 1rpx solid #f5f5f5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .item-left {
+      display: flex;
+      align-items: center;
+
+      .iconfont {
+        font-size: 40rpx;
+        color: #2b85ff;
+        margin-right: 20rpx;
+      }
+
+      .title {
+        font-size: 28rpx;
+        color: #333;
+      }
+    }
+
+    .icon-arrow-right {
+      font-size: 32rpx;
+      color: #999;
+    }
+  }
 }
 </style>
-s

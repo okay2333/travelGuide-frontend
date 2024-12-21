@@ -1,110 +1,273 @@
 <template>
   <view class="container">
-    <u-swiper :list="list" height="500" style="border-radius: 40px"></u-swiper>
+    <u-swiper
+      :list="list"
+      height="500"
+      :border-radius="20"
+      :autoplay="true"
+      :interval="3000"
+    ></u-swiper>
+
     <view class="card">
       <navigateVue />
-      <!--  <view class="menu">
-        <view class="menu_item">
-          <view class="item-icon">
-            <svg class="icon" aria-hidden="true" :font-size="30" color="#f5f5f5">
-              <use xlink:href="#icon-simiao"></use>
-            </svg>
-          </view>
-          <view class="item-title">景区预约</view>
-        </view>
-        <view class="menu_item" @click="goReserve">预约</view>
-        <view class="menu_item">VR</view>
-        <view class="menu_item">定制</view>
-      </view> -->
     </view>
-    <!-- 官方推荐 （攻略）-->
-    <h3>官方推荐</h3>
-    <view class="official-recommend">
-      <view class="rectangle"></view>
-      <view class="squares">
-        <view class="square"></view>
-        <view class="square"></view>
+
+    <!-- 官方推荐 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">官方推荐</text>
+        <text class="section-more" @tap="goArticleList">更多 ></text>
+      </view>
+
+      <view class="official-recommend">
+        <view class="featured-article" @click="goArticle(articles[0].id)">
+          <image :src="articles[0]?.cover" mode="aspectFill"></image>
+          <view class="article-overlay">
+            <text class="article-title">{{ articles[0]?.title }}</text>
+          </view>
+        </view>
+
+        <view class="article-list">
+          <view
+            class="article-item"
+            v-for="(article, index) in articles.slice(1, 3)"
+            :key="article.id"
+            @click="goArticle(article.id)"
+          >
+            <image :src="article.cover" mode="aspectFill"></image>
+            <view class="article-overlay">
+              <text class="article-title">{{ article.title }}</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
 
-    <!-- 本地推荐 （门票）-->
-    <h3>本地推荐</h3>
-    <view class="local-recommend">
-      <view class="item">Item 1</view>
-      <view class="item">Item 2</view>
-      <view class="item">Item 3</view>
+    <!-- 本地推荐 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">本地推荐</text>
+        <text class="section-more" @tap="goTicketList">更多 ></text>
+      </view>
+
+      <scroll-view class="ticket-scroll" scroll-x>
+        <view class="ticket-list">
+          <view
+            class="ticket-item"
+            v-for="ticket in tickets"
+            :key="ticket.id"
+            @click="goTicket(ticket.id)"
+          >
+            <image
+              :src="ticket.scenicVO.carouselImagesList[0]"
+              mode="aspectFill"
+            ></image>
+            <view class="ticket-info">
+              <text class="ticket-name">{{ ticket.scenicVO.scenicName }}</text>
+              <view class="ticket-price">
+                <text class="price-symbol">¥</text>
+                <text class="price-value">{{ ticket.price }}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </template>
 
 <script setup>
-import navigateVue from './components/navigate.vue';
-let list = [
+import { ref, onMounted } from "vue";
+import navigateVue from "./components/navigate.vue";
+import articleApi from "@/apis/article";
+import ticketApi from "@/apis/ticket-scenic";
+
+const articles = ref([]);
+const tickets = ref([]);
+
+const list = ref([
   {
-    image: 'https://cdn.uviewui.com/uview/swiper/1.jpg',
-    title: '昨夜星辰昨夜风，画楼西畔桂堂东'
+    image:
+      "https://se-feed-bucket.bj.bcebos.com/map_x_day_sup/1a8f033044ac6c3afeb41f09ad54905e-ss2.jpg",
+    title: "昨夜星辰昨夜风，画楼西畔桂堂东",
   },
-  {
-    image: 'https://cdn.uviewui.com/uview/swiper/2.jpg',
-    title: '身无彩凤双飞翼，心有灵犀一点通'
-  },
-  {
-    image: 'https://cdn.uviewui.com/uview/swiper/3.jpg',
-    title: '谁念西风独自凉，萧萧黄叶闭疏窗，沉思往事立残阳'
-  }
-];
-const goReserve = () => {
+  // ... 其他轮播图数据
+]);
+
+onMounted(async () => {
+  // 获取文章列表
+  const { data: articleData } = await articleApi.listArticleByPage();
+  articles.value = articleData.records;
+
+  // 获取门票列表
+  const { data: ticketData } = await ticketApi.listTicketScenicByPage();
+  tickets.value = ticketData.records;
+});
+
+const goArticle = (id) => {
   uni.navigateTo({
-    url: '/subpkg_index/reservations/index'
+    url: `/subpkg_index/article/detail?id=${id}`,
+  });
+};
+
+const goTicket = (id) => {
+  uni.navigateTo({
+    url: `/subpkg_index/ticket/ticketDetail?id=${id}`,
+  });
+};
+
+// 跳转到攻略列表页面
+const goArticleList = () => {
+  uni.navigateTo({
+    url: "/subpkg_index/article/list",
+  });
+};
+
+// 跳转到门票列表页面
+const goTicketList = () => {
+  uni.navigateTo({
+    url: "/subpkg_index/ticket/ticketList",
   });
 };
 </script>
 
 <style lang="scss">
 .container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+
   .card {
-    margin: 10px auto;
-    padding: 20rpx;
-    width: 95%;
-    border-radius: 5px;
+    margin: 20rpx;
+    padding: 30rpx;
+    background: #fff;
+    border-radius: 16rpx;
+    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
   }
-  .official-recommend {
-    width: 90%;
-    margin: 10px auto;
-    display: flex;
-    align-items: center; /* 垂直居中对齐 */
-    .rectangle {
-      height: 420rpx; /* 长方形的宽度 */
-      width: 300rpx; /* 长方形的高度 */
-      background-color: black; /* 背景颜色 */
-      margin-right: 20rpx; /* 间距 */
-      border-radius: 5px;
-    }
-    .squares {
+
+  .section {
+    margin: 30rpx 20rpx;
+
+    .section-header {
       display: flex;
-      flex-direction: column; /* 垂直排列 */
-      .square {
-        width: 350rpx; /* 正方形的宽度和高度 */
-        height: 200rpx;
-        background-color: lightcoral; /* 背景颜色 */
-        // margin-bottom: 10px; /* 间距 */
-        margin: 5px 0;
-        border-radius: 5px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20rpx;
+      padding: 0 10rpx;
+
+      .section-title {
+        font-size: 32rpx;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .section-more {
+        font-size: 24rpx;
+        color: #999;
+        padding: 10rpx;
       }
     }
   }
-  .local-recommend {
-    margin: 10px auto;
-    width: 95%; /* 外部盒子的宽度 */
-    overflow-x: scroll; /* 允许水平滚动 */
-    white-space: nowrap; /* 防止换行 */
-    .item {
-      display: inline-block;
-      width: 300rpx; /* 内部盒子的宽度 */
-      height: 250rpx; /* 内部盒子的高度 */
-      background-color: beige;
-      margin: 0 10rpx;
-      border-radius: 5%;
+
+  .official-recommend {
+    display: flex;
+    gap: 20rpx;
+
+    .featured-article {
+      flex: 1;
+      height: 420rpx;
+      position: relative;
+      border-radius: 16rpx;
+      overflow: hidden;
+
+      image {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .article-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20rpx;
+
+      .article-item {
+        height: 200rpx;
+        position: relative;
+        border-radius: 16rpx;
+        overflow: hidden;
+
+        image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+
+    .article-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20rpx;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+
+      .article-title {
+        color: #fff;
+        font-size: 28rpx;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .ticket-scroll {
+    width: 100%;
+
+    .ticket-list {
+      display: flex;
+      padding: 10rpx;
+
+      .ticket-item {
+        flex-shrink: 0;
+        width: 300rpx;
+        margin-right: 20rpx;
+        background: #fff;
+        border-radius: 16rpx;
+        overflow: hidden;
+        box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+
+        image {
+          width: 100%;
+          height: 200rpx;
+        }
+
+        .ticket-info {
+          padding: 16rpx;
+
+          .ticket-name {
+            font-size: 28rpx;
+            color: #333;
+            margin-bottom: 8rpx;
+          }
+
+          .ticket-price {
+            color: #ff6b6b;
+
+            .price-symbol {
+              font-size: 24rpx;
+            }
+
+            .price-value {
+              font-size: 32rpx;
+              font-weight: bold;
+            }
+          }
+        }
+      }
     }
   }
 }

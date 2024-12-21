@@ -21,5 +21,8 @@ export default {
       tags: [12],
       title: 'ceshi01'
     });
+  },
+  count(){
+    return uniFetch.get('/post_favour/count');
   }
 };

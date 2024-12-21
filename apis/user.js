@@ -10,5 +10,11 @@ export default {
   testLogin() {
     console.log('测试登录');
     return uniFetch.post('/user/login', { userAccount: 'alice', userPassword: '12345678' });
+  },
+  getLoginUser() {
+    return uniFetch.get('/user/get/login');
+  },
+  updateMyUser(userInfo) {
+    return uniFetch.post('/user/update/my', userInfo);
   }
 };

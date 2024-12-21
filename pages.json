@@ -86,41 +86,63 @@
     {
       "root": "subpkg_index",
       "pages": [{
-        "path": "reservations/index",
-        "style": {
-          "navigationBarTitleText": "景点预约"
+          "path": "article/detail",
+          "style": {
+            "navigationBarTitleText": "攻略详情"
+          }
+        },
+        {
+          "path": "reservations/index",
+          "style": {
+            "navigationBarTitleText": "景点预约"
+          }
+        }, {
+          "path": "reservations/record",
+          "style": {
+            "navigationBarTitleText": "预约记录"
+          }
+        }, {
+          "path": "ticket/ticketList",
+          "style": {
+            "navigationBarTitleText": "门票列表"
+          }
+        }, {
+          "path": "ticket/ticketDetail",
+          "style": {
+            "navigationBarTitleText": "门票详情"
+          }
+        }, {
+          "path": "ticket/orders",
+          "style": {
+            "navigationBarTitleText": "确认订单"
+          }
+        }, {
+          "path": "ticket/orderList",
+          "style": {
+            "navigationBarTitleText": "订单列表"
+          }
+        },{
+          "path": "ticket/orderDetails",
+          "style": {
+            "navigationBarTitleText": "订单详情页面"
+          }
+        }, {
+          "path": "ticket/payment",
+          "style": {
+            "navigationBarTitleText": "支付页面"
+          }
+        }, {
+          "path": "customization/index",
+          "style": {
+            "navigationBarTitleText": "行程定制"
+          }
+        }, {
+          "path": "article/list",
+          "style": {
+            "navigationBarTitleText": "攻略列表"
+          }
         }
-      }, {
-        "path": "reservations/record",
-        "style": {
-          "navigationBarTitleText": "预约记录"
-        }
-      }, {
-        "path": "ticket/ticketList",
-        "style": {
-          "navigationBarTitleText": "门票列表"
-        }
-      }, {
-        "path": "ticket/ticketDetail",
-        "style": {
-          "navigationBarTitleText": "门票详情"
-        }
-      }, {
-        "path": "ticket/orders",
-        "style": {
-          "navigationBarTitleText": "确认订单"
-        }
-      }, {
-        "path": "ticket/orderDetails",
-        "style": {
-          "navigationBarTitleText": "订单详情页面"
-        }
-      }, {
-        "path": "ticket/payment",
-        "style": {
-          "navigationBarTitleText": "支付页面"
-        }
-      }]
+      ]
     },
     {
       "root": "subpkg_virtual",
@@ -130,6 +152,34 @@
           "navigationBarTitleText": "景点预约"
         }
       }]
+    },
+    {
+      "root": "subpkg_my",
+      "pages": [
+        {
+          "path": "profile/edit",
+          "style": {
+            "navigationBarTitleText": "修改个人信息"
+          }
+        },
+        {
+          "path": "favorites/index",
+          "style": {
+            "navigationBarTitleText": "我的收藏"
+          }
+        }, {
+          "path": "feedback/index",
+          "style": {
+            "navigationBarTitleText": "意见反馈"
+          }
+        },
+        {
+          "path": "feedback/list",
+          "style": {
+            "navigationBarTitleText": "反馈记录"
+          }
+        }
+      ]
     }
   ],
   "uniIdRouter": {}

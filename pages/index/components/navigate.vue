@@ -16,15 +16,7 @@
       </view>
       <view class="item-title">门票购买</view>
     </view>
-    <view class="menu_item">
-      <view class="item-icon">
-        <svg class="icon" aria-hidden="true" :font-size="30" color="#f5f5f5">
-          <use xlink:href="#icon-vr-m"></use>
-        </svg>
-      </view>
-      <view class="item-title">云游景区</view>
-    </view>
-    <view class="menu_item">
+    <view class="menu_item" @click="goCustomization">
       <view class="item-icon">
         <svg class="icon" aria-hidden="true" :font-size="30" color="#f5f5f5">
           <use xlink:href="#icon-system-user"></use>
@@ -32,19 +24,37 @@
       </view>
       <view class="item-title">行程定制</view>
     </view>
+    <view class="menu_item" @click="goFeedBack">
+      <view class="item-icon">
+        <svg class="icon" aria-hidden="true" :font-size="30" color="#f5f5f5">
+          <use xlink:href="#icon-vr-m"></use>
+        </svg>
+      </view>
+      <view class="item-title">问题反馈</view>
+    </view>
   </view>
 </template>
 
 <script setup>
 const goReserve = () => {
   uni.navigateTo({
-    url: '/subpkg_index/reservations/index'
+    url: "/subpkg_index/reservations/index",
   });
 };
 
 const goTicket = () => {
   uni.navigateTo({
-    url: '/subpkg_index/ticket/ticketList'
+    url: "/subpkg_index/ticket/ticketList",
+  });
+};
+const goCustomization = () => {
+  uni.navigateTo({
+    url: "/subpkg_index/customization/index",
+  });
+};
+const goFeedBack = () => {
+  uni.navigateTo({
+    url: "/subpkg_my/feedback/index",
   });
 };
 </script>
